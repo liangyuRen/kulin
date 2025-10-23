@@ -19,6 +19,13 @@ CORS(app)
 from llm.llm import QwenClient, DeepSeekClient, LlamaClient
 from parase.c_parse import collect_dependencies
 from parase.pom_parse import process_projects
+from parase.go_parse import collect_go_dependencies
+from parase.javascript_parse import collect_javascript_dependencies
+from parase.python_parse import collect_python_dependencies
+from parase.php_parse import collect_php_dependencies
+from parase.ruby_parse import collect_ruby_dependencies
+from parase.rust_parse import collect_rust_dependencies
+from parase.erlang_parse import collect_erlang_dependencies
 from web_crawler import github
 from web_crawler.avd import avd
 from web_crawler.nvd import nvd
@@ -141,6 +148,41 @@ def pom_parse():
 def c_parse():
     project_folder = urllib.parse.unquote(request.args.get("project_folder"))
     return  collect_dependencies(project_folder)
+
+@app.route('/parse/go_parse',methods=['GET'])
+def go_parse():
+    project_folder = urllib.parse.unquote(request.args.get("project_folder"))
+    return collect_go_dependencies(project_folder)
+
+@app.route('/parse/javascript_parse',methods=['GET'])
+def javascript_parse():
+    project_folder = urllib.parse.unquote(request.args.get("project_folder"))
+    return collect_javascript_dependencies(project_folder)
+
+@app.route('/parse/python_parse',methods=['GET'])
+def python_parse():
+    project_folder = urllib.parse.unquote(request.args.get("project_folder"))
+    return collect_python_dependencies(project_folder)
+
+@app.route('/parse/php_parse',methods=['GET'])
+def php_parse():
+    project_folder = urllib.parse.unquote(request.args.get("project_folder"))
+    return collect_php_dependencies(project_folder)
+
+@app.route('/parse/ruby_parse',methods=['GET'])
+def ruby_parse():
+    project_folder = urllib.parse.unquote(request.args.get("project_folder"))
+    return collect_ruby_dependencies(project_folder)
+
+@app.route('/parse/rust_parse',methods=['GET'])
+def rust_parse():
+    project_folder = urllib.parse.unquote(request.args.get("project_folder"))
+    return collect_rust_dependencies(project_folder)
+
+@app.route('/parse/erlang_parse',methods=['GET'])
+def erlang_parse():
+    project_folder = urllib.parse.unquote(request.args.get("project_folder"))
+    return collect_erlang_dependencies(project_folder)
 
 @app.route('/vulnerabilities/detect', methods=['POST'])
 def detect_vulnerabilities():
