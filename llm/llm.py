@@ -40,7 +40,10 @@ class BaseClient:
 class DeepSeekClient(BaseClient):
     def __init__(self, model_name: str):
         super().__init__(model_name, "ALI_API_KEY", "https://dashscope.aliyuncs.com/compatible-mode/v1")
-        self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
+        # Create httpx client without proxy to avoid compatibility issues
+        import httpx
+        http_client = httpx.Client()
+        self.client = OpenAI(api_key=self.api_key, base_url=self.base_url, http_client=http_client)
 
     def Think(self, prompts: list) -> str:
         return self._retry(self._call_api, prompts)
@@ -57,7 +60,10 @@ class DeepSeekClient(BaseClient):
 class QwenClient(BaseClient):
     def __init__(self, model_name: str = "qwen-plus"):
         super().__init__(model_name, "ALI_API_KEY", "https://dashscope.aliyuncs.com/compatible-mode/v1")
-        self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
+        # Create httpx client without proxy to avoid compatibility issues
+        import httpx
+        http_client = httpx.Client()
+        self.client = OpenAI(api_key=self.api_key, base_url=self.base_url, http_client=http_client)
 
     def Think(self, prompts: list) -> str:
         return self._retry(self._call_api, prompts)
