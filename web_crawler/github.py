@@ -130,13 +130,13 @@ def parse_page(page_url, existing_ids, max_retries=3):
             return [], False, 0
 
 
-def github(start_page=1, target_count=20000, max_pages=2000):
+def github(start_page=1, target_count=5000, max_pages=2000):
     """
     爬取GitHub安全公告
 
     Args:
         start_page: 起始页码
-        target_count: 目标爬取数量（默认20000）
+        target_count: 目标爬取数量（默认5000）
         max_pages: 最大页数限制（默认2000页）
 
     Returns:

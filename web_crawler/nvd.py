@@ -122,8 +122,8 @@ def fetch_nvd_vulnerabilities_api() -> List[Dict]:
     results: List[Dict] = []
 
     try:
-        # 获取3页数据，共60条
-        for page in range(3):
+        # 获取10页数据，共200条
+        for page in range(10):
             params["startIndex"] = page * 20
 
             response = requests.get(api_url, headers=headers, params=params, timeout=30)

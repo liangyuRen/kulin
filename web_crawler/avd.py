@@ -10,14 +10,12 @@ HEADERS = {
 }
 ALIYUN_BASE_URL = "https://avd.aliyun.com?page={}"
 
-def avd():
+def avd(max_pages=10):
     print("Gathering security advisories from Aliyun AVD...")
     page = 1
     data = []   # ← 汇总
 
-    while True:
-        if page > 1:
-            break  # 先只抓第 1 页，确认结构
+    while page <= max_pages:
         url = ALIYUN_BASE_URL.format(page)
         print(f"Fetching Aliyun page {page}: {url}")
 
