@@ -1,0 +1,388 @@
+{
+  "system": {
+    "name": "VulSystem Crawler",
+    "description": "漏洞爬虫系统 - 从多个源爬取漏洞数据、解析项目依赖、利用LLM进行漏洞分析和修复建议",
+    "framework": "Flask + Flask-CORS",
+    "base_url": "http://localhost:5000",
+    "documentation_updated": "2024-11-10"
+  },
+  "categories": {
+    "vulnerabilities": {
+      "name": "漏洞爬虫接口",
+      "description": "从多个数据源爬取漏洞数据",
+      "endpoints": [
+        {
+          "path": "/vulnerabilities/github",
+          "method": "GET",
+          "name": "获取GitHub安全公告",
+          "description": "从GitHub安全公告页面爬取最新漏洞数据",
+          "parameters": [],
+          "response_code": 200,
+          "response_fields": {
+            "vulnerabilityName": "漏洞摘要",
+            "cveId": "CVE编号或GHSA编号",
+            "disclosureTime": "发布日期",
+            "description": "漏洞描述",
+            "riskLevel": "High|Medium|Low",
+            "referenceLink": "参考链接",
+            "affectsWhitelist": "是否影响白名单(0|1)"
+          }
+        },
+        {
+          "path": "/vulnerabilities/avd",
+          "method": "GET",
+          "name": "获取阿里云漏洞库数据",
+          "description": "从阿里云漏洞库(AVD)爬取漏洞数据",
+          "parameters": [],
+          "response_code": 200
+        },
+        {
+          "path": "/vulnerabilities/nvd",
+          "method": "GET",
+          "name": "获取NVD数据",
+          "description": "通过NVD官方API获取国家漏洞库数据",
+          "parameters": [],
+          "response_code": 200
+        },
+        {
+          "path": "/vulnerabilities/detect",
+          "method": "POST",
+          "name": "漏洞检测/标签识别",
+          "description": "使用TF-IDF和LLM检测漏洞与库的关联关系",
+          "parameters": [
+            {
+              "name": "language",
+              "type": "string",
+              "required": true,
+              "options": ["java", "c"],
+              "description": "编程语言"
+            },
+            {
+              "name": "white_list",
+              "type": "array",
+              "required": true,
+              "description": "白名单库列表"
+            },
+            {
+              "name": "detect_strategy",
+              "type": "string",
+              "required": true,
+              "options": ["TinyModel", "TinyModel-lev", "TinyModel-cos", "TinyModel-lcs", "LLM", "LLM-lev", "LLM-cos", "LLM-lcs", "TinyModel-whiteList", "LLM-whiteList"],
+              "description": "检测策略"
+            },
+            {
+              "name": "cve_id",
+              "type": "string",
+              "required": false,
+              "description": "CVE编号"
+            },
+            {
+              "name": "desc",
+              "type": "string",
+              "required": false,
+              "description": "漏洞描述"
+            },
+            {
+              "name": "similarityThreshold",
+              "type": "number",
+              "required": false,
+              "description": "相似度阈值(0.0-1.0)"
+            }
+          ],
+          "response_code": 200
+        },
+        {
+          "path": "/vulnerabilities/test",
+          "method": ["GET", "POST"],
+          "name": "服务健康检查",
+          "description": "测试服务是否正常运行",
+          "parameters": [],
+          "response_code": 200
+        }
+      ]
+    },
+    "llm": {
+      "name": "LLM智能分析接口",
+      "description": "大语言模型集成服务",
+      "endpoints": [
+        {
+          "path": "/llm/query",
+          "method": "GET",
+          "name": "LLM查询接口",
+          "description": "发送任意查询到大语言模型",
+          "parameters": [
+            {
+              "name": "query",
+              "type": "string",
+              "required": true,
+              "description": "查询文本"
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "required": false,
+              "options": ["qwen", "deepseek"],
+              "default": "qwen",
+              "description": "LLM模型名称"
+            }
+          ],
+          "response_code": 200,
+          "error_codes": [400]
+        },
+        {
+          "path": "/llm/repair/suggestion",
+          "method": "POST",
+          "name": "获取漏洞修复建议",
+          "description": "根据漏洞信息生成修复建议",
+          "parameters": [
+            {
+              "name": "vulnerability_name",
+              "type": "string",
+              "required": false,
+              "description": "漏洞名称"
+            },
+            {
+              "name": "vulnerability_desc",
+              "type": "string",
+              "required": false,
+              "description": "漏洞描述"
+            },
+            {
+              "name": "related_code",
+              "type": "string",
+              "required": false,
+              "description": "相关代码段"
+            },
+            {
+              "name": "model",
+              "type": "string",
+              "required": false,
+              "options": ["qwen", "deepseek"],
+              "default": "qwen",
+              "description": "LLM模型名称"
+            }
+          ],
+          "response_code": 200,
+          "error_codes": [400]
+        }
+      ]
+    },
+    "parse": {
+      "name": "项目依赖解析接口",
+      "description": "解析各种编程语言的项目依赖",
+      "endpoints": [
+        {
+          "path": "/parse/pom_parse",
+          "method": "GET",
+          "name": "Java项目解析",
+          "language": "Java",
+          "package_manager": "Maven/Gradle",
+          "files": ["pom.xml", "build.gradle"],
+          "parameters": [
+            {
+              "name": "project_folder",
+              "type": "string",
+              "required": true,
+              "description": "项目文件夹路径(URL编码)"
+            }
+          ],
+          "response_code": 200
+        },
+        {
+          "path": "/parse/c_parse",
+          "method": "GET",
+          "name": "C/C++项目解析",
+          "language": "C/C++",
+          "package_manager": "CMake/pkg-config",
+          "files": ["CMakeLists.txt", "pkg-config"],
+          "parameters": [
+            {
+              "name": "project_folder",
+              "type": "string",
+              "required": true,
+              "description": "项目文件夹路径(URL编码)"
+            }
+          ],
+          "response_code": 200
+        },
+        {
+          "path": "/parse/go_parse",
+          "method": "GET",
+          "name": "Go项目解析",
+          "language": "Go",
+          "package_manager": "Go Modules",
+          "files": ["go.mod", "go.sum"],
+          "parameters": [
+            {
+              "name": "project_folder",
+              "type": "string",
+              "required": true,
+              "description": "项目文件夹路径(URL编码)"
+            }
+          ],
+          "response_code": 200
+        },
+        {
+          "path": "/parse/javascript_parse",
+          "method": "GET",
+          "name": "JavaScript/Node.js项目解析",
+          "language": "JavaScript/TypeScript",
+          "package_manager": "NPM/Yarn",
+          "files": ["package.json", "package-lock.json", "yarn.lock"],
+          "parameters": [
+            {
+              "name": "project_folder",
+              "type": "string",
+              "required": true,
+              "description": "项目文件夹路径(URL编码)"
+            }
+          ],
+          "response_code": 200
+        },
+        {
+          "path": "/parse/python_parse",
+          "method": "GET",
+          "name": "Python项目解析",
+          "language": "Python",
+          "package_manager": "pip/PyPI",
+          "files": ["requirements.txt", "setup.py", "pyproject.toml"],
+          "parameters": [
+            {
+              "name": "project_folder",
+              "type": "string",
+              "required": true,
+              "description": "项目文件夹路径(URL编码)"
+            }
+          ],
+          "response_code": 200
+        },
+        {
+          "path": "/parse/php_parse",
+          "method": "GET",
+          "name": "PHP项目解析",
+          "language": "PHP",
+          "package_manager": "Composer",
+          "files": ["composer.json", "composer.lock"],
+          "parameters": [
+            {
+              "name": "project_folder",
+              "type": "string",
+              "required": true,
+              "description": "项目文件夹路径(URL编码)"
+            }
+          ],
+          "response_code": 200
+        },
+        {
+          "path": "/parse/ruby_parse",
+          "method": "GET",
+          "name": "Ruby项目解析",
+          "language": "Ruby",
+          "package_manager": "RubyGems",
+          "files": ["Gemfile", "Gemfile.lock"],
+          "parameters": [
+            {
+              "name": "project_folder",
+              "type": "string",
+              "required": true,
+              "description": "项目文件夹路径(URL编码)"
+            }
+          ],
+          "response_code": 200
+        },
+        {
+          "path": "/parse/rust_parse",
+          "method": "GET",
+          "name": "Rust项目解析",
+          "language": "Rust",
+          "package_manager": "Cargo",
+          "files": ["Cargo.toml", "Cargo.lock"],
+          "parameters": [
+            {
+              "name": "project_folder",
+              "type": "string",
+              "required": true,
+              "description": "项目文件夹路径(URL编码)"
+            }
+          ],
+          "response_code": 200
+        },
+        {
+          "path": "/parse/erlang_parse",
+          "method": "GET",
+          "name": "Erlang项目解析",
+          "language": "Erlang",
+          "package_manager": "Rebar",
+          "files": ["rebar.config", "rebar.lock"],
+          "parameters": [
+            {
+              "name": "project_folder",
+              "type": "string",
+              "required": true,
+              "description": "项目文件夹路径(URL编码)"
+            }
+          ],
+          "response_code": 200
+        },
+        {
+          "path": "/parse/unified_parse",
+          "method": "GET",
+          "name": "统一项目解析(多语言自动检测)",
+          "description": "智能检测项目语言并自动调用对应解析器",
+          "languages": ["Java", "Go", "JavaScript", "Python", "PHP", "Ruby", "Rust", "Erlang", "C/C++"],
+          "parameters": [
+            {
+              "name": "project_folder",
+              "type": "string",
+              "required": true,
+              "description": "项目文件夹路径(URL编码)"
+            },
+            {
+              "name": "project_id",
+              "type": "integer",
+              "required": false,
+              "description": "项目在数据库中的ID"
+            }
+          ],
+          "response_code": 200,
+          "error_codes": [400, 500]
+        }
+      ]
+    }
+  },
+  "models": {
+    "llm_models": [
+      {
+        "name": "Qwen-Max",
+        "key": "qwen",
+        "provider": "阿里云",
+        "capabilities": ["漏洞分析", "代码审查", "修复建议"]
+      },
+      {
+        "name": "DeepSeek-R1",
+        "key": "deepseek",
+        "provider": "深度求索",
+        "capabilities": ["推理", "代码分析", "修复建议"]
+      }
+    ]
+  },
+  "common_patterns": {
+    "url_encoding": {
+      "description": "项目路径需要URL编码",
+      "example": {
+        "original": "/home/user/my-project",
+        "encoded": "%2Fhome%2Fuser%2Fmy-project"
+      }
+    },
+    "error_response": {
+      "code": "<HTTP状态码>",
+      "message": "错误描述信息",
+      "data": null
+    },
+    "success_response": {
+      "code": 200,
+      "message": "success|SUCCESS",
+      "data": "<响应数据>"
+    }
+  }
+}

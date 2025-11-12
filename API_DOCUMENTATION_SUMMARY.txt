@@ -1,0 +1,475 @@
+================================================================================
+VulSystem Crawler Flask - API接口完整清单总结报告
+================================================================================
+
+生成时间: 2024-11-10
+系统: VulSystem Crawler (漏洞爬虫系统)
+项目位置: /root/vulsystem-crawler/
+
+================================================================================
+I. 系统概述
+================================================================================
+
+1. 基本信息
+   - 框架: Flask + Flask-CORS
+   - Python版本: 3.x
+   - 主应用文件: app.py (421行)
+   - 模式: Debug Mode (debug=True)
+   - 基础URL: http://localhost:5000
+
+2. 核心功能
+   - 从多个数据源爬取漏洞数据 (GitHub, AVD, NVD)
+   - 利用LLM生成漏洞修复建议
+   - 支持9种编程语言的项目依赖解析
+   - 使用TF-IDF和LLM技术进行漏洞-库关联检测
+
+3. 跨域支持
+   - 已启用CORS中间件
+   - 支持所有跨域请求
+
+================================================================================
+II. API接口总数和分类
+================================================================================
+
+总接口数: 17个
+
+接口分类统计:
+├─ 漏洞爬虫接口 (5个)
+│  ├─ /vulnerabilities/github - GitHub安全公告爬虫
+│  ├─ /vulnerabilities/avd - 阿里云漏洞库爬虫
+│  ├─ /vulnerabilities/nvd - NVD官方API
+│  ├─ /vulnerabilities/detect - 漏洞检测/标签识别
+│  └─ /vulnerabilities/test - 服务健康检查
+│
+├─ LLM服务接口 (2个)
+│  ├─ /llm/query - LLM查询接口
+│  └─ /llm/repair/suggestion - 漏洞修复建议生成
+│
+└─ 项目解析接口 (10个)
+   ├─ /parse/pom_parse - Java项目解析 (Maven/Gradle)
+   ├─ /parse/c_parse - C/C++项目解析
+   ├─ /parse/go_parse - Go项目解析
+   ├─ /parse/javascript_parse - JavaScript/Node.js解析
+   ├─ /parse/python_parse - Python项目解析
+   ├─ /parse/php_parse - PHP项目解析
+   ├─ /parse/ruby_parse - Ruby项目解析
+   ├─ /parse/rust_parse - Rust项目解析
+   ├─ /parse/erlang_parse - Erlang项目解析
+   └─ /parse/unified_parse - 统一多语言解析(推荐)
+
+================================================================================
+III. HTTP方法分布
+================================================================================
+
+GET方法: 14个接口
+├─ 所有漏洞爬虫接口(除detect)
+├─ LLM查询接口
+└─ 所有项目解析接口
+
+POST方法: 3个接口
+├─ /vulnerabilities/detect
+├─ /vulnerabilities/test (支持POST)
+└─ /llm/repair/suggestion
+
+================================================================================
+IV. 数据源和爬虫信息
+================================================================================
+
+1. GitHub安全公告 (/vulnerabilities/github)
+   - 数据源: https://github.com/advisories
+   - 目标爬取数量: 20,000条
+   - 最大页数: 2,000页
+   - 速率限制: 1.5秒/页延迟
+   - 数据去重: 自动去重(连续5页无新数据则停止)
+   - 编号类型: CVE和GHSA
+   - 返回字段: 漏洞名称、CVE编号、发布日期、风险等级、参考链接
+
+2. 阿里云漏洞库(AVD) (/vulnerabilities/avd)
+   - 数据源: https://avd.aliyun.com
+   - 当前爬取: 第一页
+   - 超时时间: 15秒
+   - 风险等级规则:
+     * 远程代码执行/命令执行/提权 → High
+     * 信息泄漏/拒绝服务 → Low
+     * 其他 → Medium(默认)
+
+3. NVD漏洞库 (/vulnerabilities/nvd)
+   - 数据源: NVD官方API (https://services.nvd.nist.gov/rest/json/cves/2.0)
+   - 获取数据: 3页(共60条)
+   - 超时时间: 30秒
+   - 评分系统: CVSS v3.1
+   - 风险等级规则:
+     * baseScore >= 7.0 → High
+     * 4.0 <= baseScore < 7.0 → Medium
+     * baseScore < 4.0 → Low
+   - Fallback: API不可用时返回示例数据
+
+================================================================================
+V. LLM服务模块
+================================================================================
+
+集成模型:
+1. Qwen-Max (阿里通义千问) - 默认模型
+   - 访问参数: model=qwen
+   - 适用场景: 通用查询、代码分析
+
+2. DeepSeek-R1 (深度求索)
+   - 访问参数: model=deepseek
+   - 适用场景: 复杂推理、详细分析
+
+3. Llama3.3-70b-instruct (已注释,可扩展)
+
+LLM接口功能:
+1. /llm/query - 通用查询
+   - 参数: query(必需), model(可选)
+   - 应用: 漏洞分析、安全咨询、代码审查建议
+
+2. /llm/repair/suggestion - 修复建议生成
+   - 参数: vulnerability_name/desc/code(至少一个), model(可选)
+   - 应用: 自动生成漏洞修复方案
+
+================================================================================
+VI. 项目解析模块详解
+================================================================================
+
+1. 支持的编程语言(9种)
+   ┌─ Java (Maven/Gradle)
+   │  ├─ 配置文件: pom.xml, build.gradle
+   │  ├─ 解析接口: /parse/pom_parse
+   │  └─ 源文件: parase/pom_parse.py
+   │
+   ├─ Go (Go Modules)
+   │  ├─ 配置文件: go.mod, go.sum
+   │  ├─ 解析接口: /parse/go_parse
+   │  └─ 源文件: parase/go_parse.py
+   │
+   ├─ JavaScript/TypeScript (NPM/Yarn)
+   │  ├─ 配置文件: package.json, package-lock.json, yarn.lock
+   │  ├─ 解析接口: /parse/javascript_parse
+   │  └─ 源文件: parase/javascript_parse.py
+   │
+   ├─ Python (pip/PyPI)
+   │  ├─ 配置文件: requirements.txt, setup.py, pyproject.toml
+   │  ├─ 解析接口: /parse/python_parse
+   │  └─ 源文件: parase/python_parse.py
+   │
+   ├─ PHP (Composer)
+   │  ├─ 配置文件: composer.json, composer.lock
+   │  ├─ 解析接口: /parse/php_parse
+   │  └─ 源文件: parase/php_parse.py
+   │
+   ├─ Ruby (RubyGems)
+   │  ├─ 配置文件: Gemfile, Gemfile.lock
+   │  ├─ 解析接口: /parse/ruby_parse
+   │  └─ 源文件: parase/ruby_parse.py
+   │
+   ├─ Rust (Cargo)
+   │  ├─ 配置文件: Cargo.toml, Cargo.lock
+   │  ├─ 解析接口: /parse/rust_parse
+   │  └─ 源文件: parase/rust_parse.py
+   │
+   ├─ Erlang (Rebar)
+   │  ├─ 配置文件: rebar.config, rebar.lock
+   │  ├─ 解析接口: /parse/erlang_parse
+   │  └─ 源文件: parase/erlang_parse.py
+   │
+   └─ C/C++ (CMake/pkg-config)
+      ├─ 配置文件: CMakeLists.txt
+      ├─ 解析接口: /parse/c_parse
+      └─ 源文件: parase/c_parse.py
+
+2. 统一项目解析接口 (/parse/unified_parse) - 推荐使用
+   - 自动检测项目中的所有编程语言
+   - 按优先级依次调用对应的解析器
+   - 统一返回所有依赖数据(含语言标签)
+   - 支持项目ID关联到数据库
+   - 详细的解析结果统计信息
+   - 包含时间戳信息
+
+================================================================================
+VII. 漏洞检测与标签识别模块
+================================================================================
+
+接口: /vulnerabilities/detect (POST)
+
+功能: 使用TF-IDF和LLM技术检测漏洞与项目依赖库的关联关系
+
+支持的语言: Java, C
+
+检测策略(10种):
+1. TinyModel - 轻量级TF-IDF匹配
+2. TinyModel-lev - TinyModel + 编辑距离(Levenshtein)
+3. TinyModel-cos - TinyModel + 余弦相似度(Cosine)
+4. TinyModel-lcs - TinyModel + 最长公共子序列(LCS)
+5. LLM - 大语言模型智能匹配(默认Qwen)
+6. LLM-lev - LLM + 编辑距离
+7. LLM-cos - LLM + 余弦相似度
+8. LLM-lcs - LLM + 最长公共子序列
+9. TinyModel-whiteList - TinyModel仅匹配白名单
+10. LLM-whiteList - LLM仅匹配白名单
+
+请求参数:
+- language: java|c (必需)
+- white_list: 库列表 (必需)
+- detect_strategy: 检测策略 (必需)
+- cve_id: CVE编号 (可选)
+- desc: 漏洞描述 (可选)
+- similarityThreshold: 相似度阈值0.0-1.0 (可选)
+
+数据文件位置:
+- 白名单库数据: VulLibGen/white_list/label_desc.csv/.json
+- TF-IDF算法: VulLibGen/tf_idf/tf_idf.py
+- 阈值计算: VulLibGen/tf_idf/threshold_cal.py
+
+================================================================================
+VIII. 项目结构说明
+================================================================================
+
+核心目录:
+vulsystem-crawler/
+├── app.py                              主Flask应用(17个路由)
+├── web_crawler/                        网页爬虫模块
+│   ├── github.py                       GitHub爬虫(目标20000条)
+│   ├── nvd.py                          NVD API接口
+│   ├── avd.py                          阿里云漏洞库爬虫
+│   └── data_validator.py               数据验证和清理
+├── parase/                             依赖解析模块(9种语言)
+│   ├── pom_parse.py                    Java解析
+│   ├── c_parse.py                      C解析
+│   ├── go_parse.py                     Go解析
+│   ├── javascript_parse.py             JavaScript解析
+│   ├── python_parse.py                 Python解析
+│   ├── php_parse.py                    PHP解析
+│   ├── ruby_parse.py                   Ruby解析
+│   ├── rust_parse.py                   Rust解析
+│   ├── erlang_parse.py                 Erlang解析
+│   ├── project_detector.py             语言自动检测
+│   └── unified_parser.py               统一解析器
+├── llm/                                LLM模块
+│   └── llm.py                          多模型客户端
+├── VulLibGen/                          漏洞库和标签识别
+│   ├── getLabels.py                    标签识别主逻辑
+│   └── tf_idf/                         TF-IDF匹配算法
+└── requirements.txt                    Python依赖
+
+================================================================================
+IX. 关键特性总结
+================================================================================
+
+1. 多源漏洞爬虫
+   ✓ GitHub安全公告(20000条)
+   ✓ 阿里云漏洞库(AVD)
+   ✓ 国家漏洞库(NVD)
+   ✓ 自动去重、数据验证、清理
+
+2. 智能LLM集成
+   ✓ 支持两个主流LLM模型(Qwen, DeepSeek)
+   ✓ 通用查询接口
+   ✓ 自动修复建议生成
+   ✓ 多策略匹配(TF-IDF + LLM)
+
+3. 全面的依赖解析
+   ✓ 支持9种编程语言
+   ✓ 自动语言检测
+   ✓ 统一接口(/parse/unified_parse)
+   ✓ 详细的解析统计
+
+4. 跨域请求支持
+   ✓ CORS已启用
+   ✓ 支持来自任何源的请求
+
+5. 数据验证和清理
+   ✓ 必填字段检查
+   ✓ 类型验证
+   ✓ 危险字符过滤
+   ✓ 自动去重
+
+================================================================================
+X. 性能指标
+================================================================================
+
+接口           | 超时时间  | 数据量        | 特点
+──────────────|────────────────────────────────────
+/vul/github   | 无限制    | 20000条       | 爬虫速率受限,耗时30-40分钟
+/vul/avd      | 15秒      | 单页          | 快速,当前仅第一页
+/vul/nvd      | 30秒      | 3页(60条)     | 稳定,官方API
+/llm/query    | 无限制    | 无限制        | 取决于LLM响应
+/llm/repair   | 无限制    | 无限制        | 取决于LLM响应
+/parse/*      | 无限制    | 无限制        | 大型项目可能耗时较长
+/parse/unified| 无限制    | 无限制        | 多语言解析,顺序处理
+
+================================================================================
+XI. 请求和响应格式规范
+================================================================================
+
+1. URL参数编码
+   - 项目路径必须URL编码
+   - 示例: /home/user/project → %2Fhome%2Fuser%2Fproject
+   - Python实现: urllib.parse.quote(path)
+
+2. 请求头
+   - 爬虫接口: 无特殊要求(设置了User-Agent)
+   - LLM接口: GET使用URL参数,POST使用表单数据
+   - 解析接口: 无特殊要求
+
+3. 错误响应格式
+   {
+     "code": <HTTP状态码>,
+     "message": "错误描述",
+     "data": null或错误详情
+   }
+
+4. 成功响应格式
+   {
+     "code": 200,
+     "message": "success|SUCCESS",
+     "data": <响应数据>或"obj": <响应数据>
+   }
+
+================================================================================
+XII. 部署和配置
+================================================================================
+
+1. LLM模型配置 (app.py lines 39-43)
+   model_clients = {
+       "qwen": QwenClient(model_name="qwen-max"),
+       "deepseek": DeepSeekClient(model_name="deepseek-r1"),
+   }
+
+2. Flask配置
+   - 框架: Flask
+   - CORS: 已启用
+   - Debug模式: 已启用
+   - 服务器: 内置开发服务器(生产环境需使用gunicorn等)
+
+3. 依赖模块
+   - requests: HTTP请求
+   - BeautifulSoup: HTML解析
+   - Flask-CORS: 跨域支持
+   - 自定义模块: llm, parase, VulLibGen
+
+================================================================================
+XIII. 文档文件列表
+================================================================================
+
+本次生成的文档文件:
+1. API_INVENTORY.md (详细文档)
+   - 完整的API接口说明
+   - 请求/响应示例
+   - 使用说明和最佳实践
+   - 架构设计说明
+
+2. API_REFERENCE.json (JSON格式参考)
+   - 机器可读的API定义
+   - 用于自动化工具集成
+
+3. API_ENDPOINTS.csv (CSV格式汇总)
+   - Excel可导入的格式
+   - 快速对比查看
+
+4. API_QUICK_REFERENCE.html (HTML快速参考)
+   - 浏览器友好的可视化界面
+   - 分类展示和导航
+   - 在线查看和搜索
+
+5. API_DOCUMENTATION_SUMMARY.txt (本文件)
+   - 文本格式总结报告
+
+================================================================================
+XIV. 使用建议
+================================================================================
+
+1. 选择合适的接口
+   - 如果只需要一个项目的依赖 → 使用 /parse/unified_parse
+   - 如果需要特定语言的详细控制 → 使用语言特定接口
+   - 如果需要漏洞数据 → 根据数据源选择相应爬虫接口
+   - 如果需要漏洞分析 → 使用 /llm/query 或 /llm/repair/suggestion
+
+2. 性能优化
+   - GitHub爬虫耗时长,建议后台异步执行
+   - 大型项目解析建议使用任务队列
+   - 缓存频繁查询的结果
+
+3. 错误处理
+   - 始终检查HTTP状态码
+   - 检查响应中的code字段
+   - 使用message字段获取详细错误信息
+
+4. 安全考虑
+   - 验证项目路径的合法性
+   - 限制能访问的文件系统范围
+   - 对LLM输入进行长度限制
+   - 记录所有API调用用于审计
+
+================================================================================
+XV. 常见问题解决
+================================================================================
+
+Q1: 项目路径参数报错?
+A: 确保使用URL编码。使用 urllib.parse.quote() 进行编码。
+
+Q2: GitHub爬虫太慢?
+A: 这是正常的。20000条数据需要30-40分钟。可以在后台执行,或减少target_count。
+
+Q3: LLM返回为空?
+A: 检查是否传递了 query 参数。确保使用的模型名称正确(qwen或deepseek)。
+
+Q4: 修复建议为空?
+A: 确保至少提供了以下三项之一:
+   - vulnerability_name
+   - vulnerability_desc
+   - related_code
+
+Q5: 项目解析失败?
+A: 检查:
+   1. 路径是否存在且是URL编码的
+   2. 项目是否包含该语言的配置文件
+   3. 配置文件格式是否正确
+
+Q6: unified_parse只支持一种语言?
+A: 它支持所有9种语言。如果只检测到一种语言,说明项目中只有这种语言的配置。
+
+================================================================================
+XVI. 技术栈
+================================================================================
+
+后端框架: Flask
+Web爬虫: BeautifulSoup + requests
+跨域支持: Flask-CORS
+LLM集成: 自定义客户端(支持Qwen, DeepSeek)
+文本处理: TF-IDF, 编辑距离, 余弦相似度, LCS
+项目检测: 自定义ProjectDetector类
+数据验证: 自定义validator模块
+
+================================================================================
+XVII. 扩展建议
+================================================================================
+
+1. 添加新的漏洞数据源
+   - 在web_crawler/添加新爬虫模块
+   - 在app.py中添加新路由
+   - 遵循相同的数据格式
+
+2.支持更多编程语言
+   - 在parase/添加新解析器
+   - 在project_detector.py中注册语言
+   - 在unified_parse中添加映射
+
+3. 集成更多LLM模型
+   - 在llm.py中添加新客户端类
+   - 在model_clients字典中注册
+   - 在app.py中添加模型选项
+
+4. 数据库集成
+   - 添加SQLAlchemy ORM支持
+   - 存储爬虫结果和分析结果
+   - 添加用户管理和权限控制
+
+================================================================================
+
+END OF REPORT
+
+================================================================================
+联系方式: VulSystem Team
+最后更新: 2024-11-10
+项目地址: /root/vulsystem-crawler/

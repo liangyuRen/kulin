@@ -75,7 +75,7 @@ def process_projects(project_folder):
     pom_files = find_pom_files(project_folder)
     if not pom_files:
         print(f"No pom.xml files found in {project_folder}")
-        return
+        return json.dumps([])
 
     unique_dependencies = set()
     for pom_path in pom_files:

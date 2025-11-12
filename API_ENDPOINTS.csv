@@ -1,0 +1,18 @@
+功能分类,端点,HTTP方法,功能名称,功能描述,请求参数,响应状态码,数据源文件,备注
+漏洞爬虫,/vulnerabilities/github,GET,获取GitHub安全公告,从GitHub安全公告页面爬取最新漏洞数据。支持分页爬取(20000条),无,200,/root/vulsystem-crawler/web_crawler/github.py,自动去重,目标20000条漏洞
+漏洞爬虫,/vulnerabilities/avd,GET,获取阿里云漏洞库,从阿里云漏洞库爬取漏洞数据,无,200,/root/vulsystem-crawler/web_crawler/avd.py,当前仅第一页,可扩展至多页
+漏洞爬虫,/vulnerabilities/nvd,GET,获取NVD官方API数据,通过NVD官方API获取国家漏洞库数据,无,200,/root/vulsystem-crawler/web_crawler/nvd.py,获取3页数据(60条),CVSS评分信息
+漏洞爬虫,/vulnerabilities/detect,POST,漏洞检测/标签识别,使用TF-IDF和LLM检测漏洞与库的关联关系,language;white_list;detect_strategy;cve_id;desc;similarityThreshold,200/400,/root/vulsystem-crawler/VulLibGen/getLabels.py,10种检测策略,支持Java和C语言
+漏洞爬虫,/vulnerabilities/test,GET/POST,服务健康检查,测试服务是否正常运行,无,200,/root/vulsystem-crawler/app.py (lines 412-418),简单健康检查,返回OK状态
+LLM服务,/llm/query,GET,LLM查询接口,发送任意查询到大语言模型,query(必需);model(可选:qwen/deepseek),200/400,/root/vulsystem-crawler/llm/llm.py,支持Qwen-Max和DeepSeek-R1,默认使用Qwen
+LLM服务,/llm/repair/suggestion,POST,获取漏洞修复建议,根据漏洞信息生成修复建议,vulnerability_name;vulnerability_desc;related_code;model,200/400,/root/vulsystem-crawler/app.py (lines 92-142),至少需要一个参数,生成详细修复建议
+Java依赖解析,/parse/pom_parse,GET,Java项目解析,解析Java项目pom.xml提取Maven依赖,project_folder(必需;URL编码),200,/root/vulsystem-crawler/parase/pom_parse.py,Maven/Gradle支持,递归查找pom.xml
+C/C++依赖解析,/parse/c_parse,GET,C/C++项目解析,解析C/C++项目依赖(CMake;pkg-config等),project_folder(必需;URL编码),200,/root/vulsystem-crawler/parase/c_parse.py,CMake/pkg-config支持,版本号提取
+Go依赖解析,/parse/go_parse,GET,Go项目解析,解析Go项目go.mod提取Go模块依赖,project_folder(必需;URL编码),200,/root/vulsystem-crawler/parase/go_parse.py,Go Modules支持,支持版本信息
+JavaScript依赖解析,/parse/javascript_parse,GET,JavaScript项目解析,解析Node.js项目package.json提取NPM/Yarn依赖,project_folder(必需;URL编码),200,/root/vulsystem-crawler/parase/javascript_parse.py,NPM/Yarn支持,开发依赖标记
+Python依赖解析,/parse/python_parse,GET,Python项目解析,解析Python项目requirements.txt和setup.py提取PyPI依赖,project_folder(必需;URL编码),200,/root/vulsystem-crawler/parase/python_parse.py,pip/PyPI支持,Extras解析
+PHP依赖解析,/parse/php_parse,GET,PHP项目解析,解析PHP项目composer.json提取Composer依赖,project_folder(必需;URL编码),200,/root/vulsystem-crawler/parase/php_parse.py,Composer支持,版本约束信息
+Ruby依赖解析,/parse/ruby_parse,GET,Ruby项目解析,解析Ruby项目Gemfile提取RubyGems依赖,project_folder(必需;URL编码),200,/root/vulsystem-crawler/parase/ruby_parse.py,RubyGems支持,Gemfile.lock解析
+Rust依赖解析,/parse/rust_parse,GET,Rust项目解析,解析Rust项目Cargo.toml提取Crates.io依赖,project_folder(必需;URL编码),200,/root/vulsystem-crawler/parase/rust_parse.py,Cargo支持,Features列表
+Erlang依赖解析,/parse/erlang_parse,GET,Erlang项目解析,解析Erlang项目rebar.config提取依赖,project_folder(必需;URL编码),200,/root/vulsystem-crawler/parase/erlang_parse.py,Rebar支持,版本管理
+统一项目解析,/parse/unified_parse,GET,统一项目解析(多语言自动检测),智能检测项目语言并自动调用对应解析器,project_folder(必需;URL编码);project_id(可选),200/400/500,/root/vulsystem-crawler/app.py (lines 191-393),9种语言支持,自动语言检测+多语言解析

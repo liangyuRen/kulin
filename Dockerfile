@@ -37,6 +37,10 @@ RUN pip install --timeout=120 -i https://mirrors.aliyun.com/pypi/simple/ --prefe
 RUN pip install --timeout=120 -i https://mirrors.aliyun.com/pypi/simple/ --prefer-binary \
     dashscope==1.19.0 openai==1.30.0 python-Levenshtein==0.23.0
 
+# Step 6: Install missing YAML support
+RUN pip install --timeout=120 -i https://mirrors.aliyun.com/pypi/simple/ --prefer-binary \
+    PyYAML==6.0.1 httpx
+
 # Copy application code
 COPY . .
 

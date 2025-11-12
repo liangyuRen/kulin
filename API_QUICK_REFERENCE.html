@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VulSystem Crawler - API快速参考指南</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .nav {
+            display: flex;
+            flex-wrap: wrap;
+            background: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+            padding: 0;
+            margin: 0;
+            gap: 0;
+        }
+        
+        .nav a {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            text-decoration: none;
+            color: #667eea;
+            border-right: 1px solid #ddd;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .nav a:hover {
+            background: #e9ecef;
+        }
+        
+        .nav a:last-child {
+            border-right: none;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            display: none;
+            margin-bottom: 40px;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        h2 {
+            color: #667eea;
+            font-size: 2em;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .endpoint {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .endpoint:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+        
+        .endpoint-path {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #764ba2;
+            margin-bottom: 10px;
+        }
+        
+        .method-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .method-get {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .method-post {
+            background: #cfe2ff;
+            color: #084298;
+        }
+        
+        .endpoint-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .endpoint-desc {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .param-group {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+        
+        .param-label {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .param-list {
+            list-style: none;
+            padding-left: 20px;
+        }
+        
+        .param-list li {
+            margin-bottom: 8px;
+            color: #555;
+        }
+        
+        .param-list li code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .response-example {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin-top: 10px;
+            color: #333;
+        }
+        
+        .category-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #e7f3ff;
+            color: #0066cc;
+            border-radius: 3px;
+            font-size: 0.85em;
+            margin-right: 10px;
+        }
+        
+        .info-box {
+            background: #f0f7ff;
+            border-left: 4px solid #0066cc;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .info-box strong {
+            color: #0066cc;
+        }
+        
+        footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #ddd;
+        }
+        
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+            
+            .nav {
+                flex-direction: column;
+            }
+            
+            .nav a {
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+            }
+            
+            .nav a:last-child {
+                border-bottom: none;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        tr:hover {
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>VulSystem Crawler</h1>
+            <p>漏洞爬虫系统 - Flask API快速参考指南</p>
+        </header>
+        
+        <div class="nav">
+            <a onclick="showSection('overview')">概览</a>
+            <a onclick="showSection('vulnerabilities')">漏洞爬虫</a>
+            <a onclick="showSection('llm')">LLM服务</a>
+            <a onclick="showSection('parse')">依赖解析</a>
+            <a onclick="showSection('reference')">快速参考</a>
+        </div>
+        
+        <div class="content">
+            <!-- 概览 -->
+            <div id="overview" class="section active">
+                <h2>系统概览</h2>
+                
+                <div class="info-box">
+                    <strong>系统名称:</strong> VulSystem Crawler<br>
+                    <strong>框架:</strong> Flask + Flask-CORS<br>
+                    <strong>项目路径:</strong> /root/vulsystem-crawler/<br>
+                    <strong>基础URL:</strong> http://localhost:5000<br>
+                    <strong>服务器模式:</strong> debug=True<br>
+                    <strong>更新时间:</strong> 2024-11-10
+                </div>
+                
+                <h3 style="color: #667eea; margin: 30px 0 20px;">功能模块</h3>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>模块名称</th>
+                            <th>功能描述</th>
+                            <th>接口数量</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>漏洞爬虫</strong></td>
+                            <td>从GitHub、AVD、NVD等多个源爬取漏洞数据</td>
+                            <td>5个</td>
+                        </tr>
+                        <tr>
+                            <td><strong>LLM服务</strong></td>
+                            <td>集成Qwen和DeepSeek大语言模型进行智能分析</td>
+                            <td>2个</td>
+                        </tr>
+                        <tr>
+                            <td><strong>依赖解析</strong></td>
+                            <td>支持9种编程语言的项目依赖解析</td>
+                            <td>10个</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3 style="color: #667eea; margin: 30px 0 20px;">支持的编程语言</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0;">
+                    <div style="background: #f0f7ff; padding: 15px; border-radius: 4px; text-align: center;">
+                        <strong>Java</strong><br><small>Maven/Gradle</small>
+                    </div>
+                    <div style="background: #f0f7ff; padding: 15px; border-radius: 4px; text-align: center;">
+                        <strong>Go</strong><br><small>Go Modules</small>
+                    </div>
+                    <div style="background: #f0f7ff; padding: 15px; border-radius: 4px; text-align: center;">
+                        <strong>JavaScript</strong><br><small>NPM/Yarn</small>
+                    </div>
+                    <div style="background: #f0f7ff; padding: 15px; border-radius: 4px; text-align: center;">
+                        <strong>Python</strong><br><small>pip/PyPI</small>
+                    </div>
+                    <div style="background: #f0f7ff; padding: 15px; border-radius: 4px; text-align: center;">
+                        <strong>PHP</strong><br><small>Composer</small>
+                    </div>
+                    <div style="background: #f0f7ff; padding: 15px; border-radius: 4px; text-align: center;">
+                        <strong>Ruby</strong><br><small>RubyGems</small>
+                    </div>
+                    <div style="background: #f0f7ff; padding: 15px; border-radius: 4px; text-align: center;">
+                        <strong>Rust</strong><br><small>Cargo</small>
+                    </div>
+                    <div style="background: #f0f7ff; padding: 15px; border-radius: 4px; text-align: center;">
+                        <strong>Erlang</strong><br><small>Rebar</small>
+                    </div>
+                    <div style="background: #f0f7ff; padding: 15px; border-radius: 4px; text-align: center;">
+                        <strong>C/C++</strong><br><small>CMake/pkg-config</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 漏洞爬虫接口 -->
+            <div id="vulnerabilities" class="section">
+                <h2>漏洞爬虫接口</h2>
+                
+                <div class="endpoint">
+                    <span class="category-badge">漏洞爬虫</span>
+                    <span class="method-badge method-get">GET</span>
+                    <div class="endpoint-path">/vulnerabilities/github</div>
+                    <div class="endpoint-name">获取GitHub安全公告</div>
+                    <div class="endpoint-desc">从GitHub安全公告页面爬取最新漏洞数据，支持分页爬取，自动去重</div>
+                    <div class="param-group">
+                        <div class="param-label">请求参数:</div>
+                        <div class="param-list">
+                            <li>无</li>
+                        </div>
+                    </div>
+                    <div class="param-group">
+                        <div class="param-label">响应状态码:</div>
+                        <div class="param-list">
+                            <li>200 - 成功</li>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="endpoint">
+                    <span class="category-badge">漏洞爬虫</span>
+                    <span class="method-badge method-get">GET</span>
+                    <div class="endpoint-path">/vulnerabilities/avd</div>
+                    <div class="endpoint-name">获取阿里云漏洞库(AVD)</div>
+                    <div class="endpoint-desc">从阿里云漏洞库爬取漏洞数据，当前仅支持第一页</div>
+                    <div class="param-group">
+                        <div class="param-label">请求参数:</div>
+                        <div class="param-list">
+                            <li>无</li>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="endpoint">
+                    <span class="category-badge">漏洞爬虫</span>
+                    <span class="method-badge method-get">GET</span>
+                    <div class="endpoint-path">/vulnerabilities/nvd</div>
+                    <div class="endpoint-name">获取NVD数据</div>
+                    <div class="endpoint-desc">通过NVD官方API获取国家漏洞库数据，包含CVSS评分信息</div>
+                    <div class="param-group">
+                        <div class="param-label">请求参数:</div>
+                        <div class="param-list">
+                            <li>无</li>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="endpoint">
+                    <span class="category-badge">漏洞爬虫</span>
+                    <span class="method-badge method-post">POST</span>
+                    <div class="endpoint-path">/vulnerabilities/detect</div>
+                    <div class="endpoint-name">漏洞检测/标签识别</div>
+                    <div class="endpoint-desc">使用TF-IDF和LLM检测漏洞与项目依赖库的关联关系</div>
+                    <div class="param-group">
+                        <div class="param-label">请求参数:</div>
+                        <div class="param-list">
+                            <li><code>language</code> - java|c (必需)</li>
+                            <li><code>white_list</code> - 白名单库列表 (必需)</li>
+                            <li><code>detect_strategy</code> - 检测策略 (必需)</li>
+                            <li><code>cve_id</code> - CVE编号 (可选)</li>
+                            <li><code>desc</code> - 漏洞描述 (可选)</li>
+                            <li><code>similarityThreshold</code> - 相似度阈值 (可选)</li>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="endpoint">
+                    <span class="category-badge">漏洞爬虫</span>
+                    <span class="method-badge method-get">GET</span>
+                    <span class="method-badge method-post">POST</span>
+                    <div class="endpoint-path">/vulnerabilities/test</div>
+                    <div class="endpoint-name">服务健康检查</div>
+                    <div class="endpoint-desc">测试服务是否正常运行</div>
+                </div>
+            </div>
+            
+            <!-- LLM服务 -->
+            <div id="llm" class="section">
+                <h2>LLM智能分析接口</h2>
+                
+                <div class="info-box">
+                    <strong>支持的模型:</strong><br>
+                    - Qwen-Max (阿里通义千问) - 默认模型<br>
+                    - DeepSeek-R1 (深度求索)<br>
+                    <strong>访问方式:</strong> model=qwen 或 model=deepseek
+                </div>
+                
+                <div class="endpoint">
+                    <span class="category-badge">LLM服务</span>
+                    <span class="method-badge method-get">GET</span>
+                    <div class="endpoint-path">/llm/query</div>
+                    <div class="endpoint-name">LLM查询接口</div>
+                    <div class="endpoint-desc">发送任意查询到大语言模型，获取AI分析结果</div>
+                    <div class="param-group">
+                        <div class="param-label">请求参数:</div>
+                        <div class="param-list">
+                            <li><code>query</code> - 查询文本 (必需)</li>
+                            <li><code>model</code> - 模型名称:qwen|deepseek (可选,默认qwen)</li>
+                        </div>
+                    </div>
+                    <div class="param-group">
+                        <div class="param-label">使用示例:</div>
+                        <div class="response-example">
+GET /llm/query?query=如何修复SQL注入漏洞&model=qwen
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="endpoint">
+                    <span class="category-badge">LLM服务</span>
+                    <span class="method-badge method-post">POST</span>
+                    <div class="endpoint-path">/llm/repair/suggestion</div>
+                    <div class="endpoint-name">获取漏洞修复建议</div>
+                    <div class="endpoint-desc">根据漏洞信息(名称、描述、代码)生成修复建议</div>
+                    <div class="param-group">
+                        <div class="param-label">请求参数:</div>
+                        <div class="param-list">
+                            <li><code>vulnerability_name</code> - 漏洞名称 (可选)</li>
+                            <li><code>vulnerability_desc</code> - 漏洞描述 (可选)</li>
+                            <li><code>related_code</code> - 相关代码段 (可选)</li>
+                            <li><code>model</code> - 模型名称:qwen|deepseek (可选,默认qwen)</li>
+                        </div>
+                    </div>
+                    <div class="info-box" style="margin-top: 15px;">
+                        <strong>注意:</strong> 至少需要提供 vulnerability_name、vulnerability_desc、related_code 之一
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 依赖解析 -->
+            <div id="parse" class="section">
+                <h2>项目依赖解析接口</h2>
+                
+                <div class="info-box">
+                    <strong>公共参数:</strong><br>
+                    - <code>project_folder</code> - 项目文件夹路径 (必需,URL编码)<br>
+                    <strong>重要说明:</strong> 项目路径必须进行URL编码，例如 /home/user/my-project 编码为 %2Fhome%2Fuser%2Fmy-project
+                </div>
+                
+                <div class="endpoint">
+                    <span class="category-badge">解析</span>
+                    <span class="method-badge method-get">GET</span>
+                    <div class="endpoint-path">/parse/unified_parse</div>
+                    <div class="endpoint-name">统一项目解析(推荐)</div>
+                    <div class="endpoint-desc">智能检测项目中的所有编程语言，自动调用对应的解析器，统一返回所有依赖数据</div>
+                    <div class="param-group">
+                        <div class="param-label">请求参数:</div>
+                        <div class="param-list">
+                            <li><code>project_folder</code> - 项目路径 (必需,URL编码)</li>
+                            <li><code>project_id</code> - 项目ID (可选)</li>
+                        </div>
+                    </div>
+                    <div class="info-box" style="margin-top: 15px;">
+                        <strong>支持9种语言自动检测:</strong> Java、Go、JavaScript、Python、PHP、Ruby、Rust、Erlang、C/C++
+                    </div>
+                </div>
+                
+                <h3 style="color: #667eea; margin-top: 30px; margin-bottom: 20px;">单语言解析接口</h3>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>语言</th>
+                            <th>端点</th>
+                            <th>包管理器</th>
+                            <th>配置文件</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Java</td>
+                            <td>/parse/pom_parse</td>
+                            <td>Maven/Gradle</td>
+                            <td>pom.xml</td>
+                        </tr>
+                        <tr>
+                            <td>Go</td>
+                            <td>/parse/go_parse</td>
+                            <td>Go Modules</td>
+                            <td>go.mod</td>
+                        </tr>
+                        <tr>
+                            <td>JavaScript</td>
+                            <td>/parse/javascript_parse</td>
+                            <td>NPM/Yarn</td>
+                            <td>package.json</td>
+                        </tr>
+                        <tr>
+                            <td>Python</td>
+                            <td>/parse/python_parse</td>
+                            <td>pip/PyPI</td>
+                            <td>requirements.txt</td>
+                        </tr>
+                        <tr>
+                            <td>PHP</td>
+                            <td>/parse/php_parse</td>
+                            <td>Composer</td>
+                            <td>composer.json</td>
+                        </tr>
+                        <tr>
+                            <td>Ruby</td>
+                            <td>/parse/ruby_parse</td>
+                            <td>RubyGems</td>
+                            <td>Gemfile</td>
+                        </tr>
+                        <tr>
+                            <td>Rust</td>
+                            <td>/parse/rust_parse</td>
+                            <td>Cargo</td>
+                            <td>Cargo.toml</td>
+                        </tr>
+                        <tr>
+                            <td>Erlang</td>
+                            <td>/parse/erlang_parse</td>
+                            <td>Rebar</td>
+                            <td>rebar.config</td>
+                        </tr>
+                        <tr>
+                            <td>C/C++</td>
+                            <td>/parse/c_parse</td>
+                            <td>CMake</td>
+                            <td>CMakeLists.txt</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 快速参考 -->
+            <div id="reference" class="section">
+                <h2>快速参考</h2>
+                
+                <h3 style="color: #667eea; margin: 30px 0 20px;">cURL调用示例</h3>
+                
+                <div style="background: #f5f5f5; padding: 20px; border-radius: 4px; margin-bottom: 20px; overflow-x: auto;">
+                    <strong style="display: block; margin-bottom: 10px;">1. GitHub漏洞爬取</strong>
+                    <code style="color: #d63384;">curl http://localhost:5000/vulnerabilities/github</code>
+                </div>
+                
+                <div style="background: #f5f5f5; padding: 20px; border-radius: 4px; margin-bottom: 20px; overflow-x: auto;">
+                    <strong style="display: block; margin-bottom: 10px;">2. LLM查询</strong>
+                    <code style="color: #d63384;">curl "http://localhost:5000/llm/query?query=如何修复XSS漏洞&model=qwen"</code>
+                </div>
+                
+                <div style="background: #f5f5f5; padding: 20px; border-radius: 4px; margin-bottom: 20px; overflow-x: auto;">
+                    <strong style="display: block; margin-bottom: 10px;">3. 修复建议</strong>
+                    <code style="color: #d63384;">curl -X POST http://localhost:5000/llm/repair/suggestion \<br>
+  -d "vulnerability_name=SQL注入" \<br>
+  -d "vulnerability_desc=用户输入未过滤" \<br>
+  -d "related_code=SELECT * FROM users WHERE id=\$_GET['id']"</code>
+                </div>
+                
+                <div style="background: #f5f5f5; padding: 20px; border-radius: 4px; margin-bottom: 20px; overflow-x: auto;">
+                    <strong style="display: block; margin-bottom: 10px;">4. Java项目解析</strong>
+                    <code style="color: #d63384;">curl "http://localhost:5000/parse/pom_parse?project_folder=%2Fhome%2Fuser%2Fmy-app"</code>
+                </div>
+                
+                <div style="background: #f5f5f5; padding: 20px; border-radius: 4px; overflow-x: auto;">
+                    <strong style="display: block; margin-bottom: 10px;">5. 统一项目解析(推荐)</strong>
+                    <code style="color: #d63384;">curl "http://localhost:5000/parse/unified_parse?project_folder=%2Fhome%2Fuser%2Fmy-project&project_id=123"</code>
+                </div>
+                
+                <h3 style="color: #667eea; margin: 30px 0 20px;">关键特性</h3>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>特性</th>
+                            <th>说明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>CORS支持</strong></td>
+                            <td>所有接口均启用CORS，支持跨域请求</td>
+                        </tr>
+                        <tr>
+                            <td><strong>数据验证</strong></td>
+                            <td>自动验证和清理爬虫数据(去重、类型检查等)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>多模型支持</strong></td>
+                            <td>集成Qwen和DeepSeek两个大语言模型</td>
+                        </tr>
+                        <tr>
+                            <td><strong>多语言解析</strong></td>
+                            <td>支持9种编程语言自动检测和解析</td>
+                        </tr>
+                        <tr>
+                            <td><strong>智能关联</strong></td>
+                            <td>使用TF-IDF和LLM智能检测漏洞与库的关联</td>
+                        </tr>
+                        <tr>
+                            <td><strong>统一接口</strong></td>
+                            <td>unified_parse提供统一的多语言项目解析</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3 style="color: #667eea; margin: 30px 0 20px;">常见问题</h3>
+                
+                <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; border-radius: 4px;">
+                    <strong>Q: 项目路径参数如何编码?</strong><br>
+                    A: 使用URL编码。例如 /home/user/project 编码为 %2Fhome%2Fuser%2Fproject。
+                    在Python中可用 urllib.parse.quote() 函数。
+                </div>
+                
+                <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; border-radius: 4px;">
+                    <strong>Q: 漏洞爬虫需要多长时间?</strong><br>
+                    A: GitHub爬虫目标20,000条，每页延迟1.5秒，总耗时约30-40分钟。
+                    NVD和AVD较快，5-20秒内完成。
+                </div>
+                
+                <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; border-radius: 4px;">
+                    <strong>Q: 哪个解析接口最推荐使用?</strong><br>
+                    A: 推荐使用 /parse/unified_parse 统一接口，它能自动检测项目语言，无需指定语言类型。
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>VulSystem Crawler API Documentation | Generated on 2024-11-10</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">
+                Project Location: /root/vulsystem-crawler/ | 
+                Documentation: API_INVENTORY.md | 
+                Reference: API_REFERENCE.json
+            </p>
+        </footer>
+    </div>
+    
+    <script>
+        function showSection(sectionId) {
+            // 隐藏所有部分
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // 显示选中的部分
+            const activeSection = document.getElementById(sectionId);
+            if (activeSection) {
+                activeSection.classList.add('active');
+            }
+            
+            // 更新导航按钮状态
+            const navLinks = document.querySelectorAll('.nav a');
+            navLinks.forEach(link => {
+                link.style.borderBottom = 'none';
+                link.style.fontWeight = 'normal';
+            });
+            
+            event.target.style.borderBottom = '3px solid #667eea';
+            event.target.style.fontWeight = 'bold';
+        }
+    </script>
+</body>
+</html>
