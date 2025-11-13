@@ -1,0 +1,213 @@
+# ===== Python =====
+# 编译文件
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# 分发 / 打包
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# ===== IDE =====
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# ===== OS =====
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.Trash-*
+
+# ===== 项目特定 =====
+# 日志文件
+logs/
+*.log
+
+# 临时文件
+temp/
+tmp/
+*.tmp
+
+# 爬虫数据
+*.html
+data/
+
+# 缓存
+.cache/
+cache/
+
+# 本地测试数据
+test_data/
+local_test/
+
+# API Keys 和敏感信息
+.env
+.env.local
+.env.*.local
+secrets/
+credentials.json
+api_keys.json
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE 生成的文件
+.vscode/
+.idea/
+*.code-workspace
+.project
+.pydevproject
+
+# macOS 特定
+.vscode/settings.json
+.vscode/launch.json
+
+# 虚拟环境
+venv/
+ENV/
+.venv
+
+# 依赖缓存
+pip-log.txt
+pip-delete-this-directory.txt
+
+# 分布式内存缓存
+.dmypy.json
+dmypy.json
+
+# Pyre 类型检查
+.pyre/
+
+# ===== 项目生成的文件 =====
+# 爬虫输出
+crawled_data/
+vulnerability_data/
+
+# 解析结果
+parsed_results/
+
+# 生成的报告
+reports/
+
+# 临时目录
+temp_projects/
+
+# 不需要版本控制的文件
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
