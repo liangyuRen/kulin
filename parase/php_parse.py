@@ -115,7 +115,7 @@ def collect_php_dependencies(project_path):
 
     if not composer_files:
         print(f"No composer.json or composer.lock files found in {project_path}")
-        return []
+        return json.dumps([])
 
     unique_dependencies = set()
 

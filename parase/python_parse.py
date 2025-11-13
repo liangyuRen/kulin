@@ -332,7 +332,7 @@ def collect_python_dependencies(project_path):
 
     if not dep_files:
         print(f"No Python dependency files found in {project_path}")
-        return []
+        return json.dumps([])
 
     unique_dependencies = set()
 

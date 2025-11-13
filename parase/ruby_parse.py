@@ -1,5 +1,6 @@
 import os
 import re
+import json
 
 from parase.pom_parse import llm_communicate
 
@@ -107,7 +108,7 @@ def collect_ruby_dependencies(project_path):
 
     if not gemfiles:
         print(f"No Gemfile or Gemfile.lock files found in {project_path}")
-        return []
+        return json.dumps([])
 
     unique_dependencies = set()
 

@@ -1,5 +1,6 @@
 import os
 import re
+import json
 
 from parase.pom_parse import llm_communicate
 
@@ -128,7 +129,7 @@ def collect_rust_dependencies(project_path):
 
     if not cargo_files:
         print(f"No Cargo.toml or Cargo.lock files found in {project_path}")
-        return []
+        return json.dumps([])
 
     unique_dependencies = set()
 

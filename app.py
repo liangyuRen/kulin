@@ -50,16 +50,124 @@ CORS(app)
 
 @app.route('/vulnerabilities/github', methods=['GET'])
 def get_github_vulnerabilities():
-    data = github.github()
-    return jsonify(data)
+    """
+    获取GitHub安全公告漏洞 - 异步爬取
+    查询参数:
+        - limit: 返回数量限制 (默认50，最多300)
+        - mode: 模式 (sync=同步, async=异步，默认async)
+
+    同步模式直接返回数据
+    异步模式返回任务ID，可通过 /vulnerabilities/github/status/{task_id} 查询进度
+    """
+    limit = request.args.get("limit", 50, type=int)
+    mode = request.args.get("mode", "async", type=str).lower()
+
+    # 限制最大值以防止超时
+    if limit > 300:
+        limit = 300
+    if limit < 10:
+        limit = 10
+
+    print(f"[GitHub漏洞] 爬取限制: {limit}, 模式: {mode}")
+
+    # 同步模式 - 仅用于小规模爬取
+    if mode == "sync" and limit <= 30:
+        try:
+            data = github.github(target_count=limit, max_pages=20)
+            return jsonify(data), 200
+        except Exception as e:
+            return jsonify({
+                "code": 500,
+                "message": f"GitHub爬取失败: {str(e)}"
+            }), 500
+
+    # 异步模式 - 后台爬取
+    def crawl_github_vulnerabilities():
+        """后台GitHub爬虫任务"""
+        try:
+            data = github.github(target_count=limit, max_pages=30)
+            return {
+                "code": 200,
+                "message": "GitHub爬虫完成",
+                "obj": data if isinstance(data, list) else data.get('obj', data)
+            }
+        except Exception as e:
+            raise Exception(f"GitHub爬虫错误: {str(e)}")
+
+    # 提交异步任务
+    task_id = task_manager.create_task(crawl_github_vulnerabilities)
+
+    return jsonify({
+        "code": 202,
+        "message": "GitHub爬虫任务已提交",
+        "task_id": task_id,
+        "status_url": f"/vulnerabilities/github/status/{task_id}",
+        "result_url": f"/vulnerabilities/github/result/{task_id}",
+        "note": "GitHub爬虫可能需要2-5分钟，请使用状态URL查询进度"
+    }), 202
+
+
+@app.route('/vulnerabilities/github/status/<task_id>', methods=['GET'])
+@cross_origin()
+def get_github_status(task_id):
+    """获取GitHub爬虫任务状态"""
+    task_status = task_manager.get_task_status(task_id)
+
+    if task_status['status'] == 'not_found':
+        return jsonify(task_status), 404
+
+    return jsonify({
+        "code": 200,
+        "task_id": task_id,
+        "status": task_status['status'],
+        "created_at": task_status['created_at'],
+        "completed_at": task_status['completed_at']
+    }), 200
+
+
+@app.route('/vulnerabilities/github/result/<task_id>', methods=['GET'])
+@cross_origin()
+def get_github_result(task_id):
+    """获取GitHub爬虫任务结果"""
+    task_status = task_manager.get_task_status(task_id)
+
+    if task_status['status'] == 'not_found':
+        return jsonify({
+            "code": 404,
+            "message": f"Task {task_id} not found"
+        }), 404
+
+    if task_status['status'] != 'completed':
+        return jsonify({
+            "code": 202,
+            "message": f"Task still {task_status['status']}, please check status endpoint",
+            "task_id": task_id,
+            "status": task_status['status'],
+            "status_url": f"/vulnerabilities/github/status/{task_id}"
+        }), 202
+
+    if task_status['error']:
+        return jsonify({
+            "code": 500,
+            "message": "GitHub爬虫任务失败",
+            "error": task_status['error']
+        }), 500
+
+    # 返回任务结果
+    result = task_status['result']
+    result['task_id'] = task_id
+    result['completed_at'] = task_status['completed_at']
+    return jsonify(result), 200
 
 @app.route('/vulnerabilities/avd', methods=['GET'])
 def get_avd_vulnerabilities():
+    """获取阿里云AVD漏洞库数据"""
     data = avd()
     return jsonify(data)
 
 @app.route('/vulnerabilities/nvd', methods=['GET'])
 def get_nvd_vulnerabilities():
+    """获取美国NVD漏洞库数据"""
     data = nvd()
     return jsonify(data)
 

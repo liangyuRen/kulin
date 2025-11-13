@@ -88,31 +88,63 @@ def parse_package_lock_json(package_lock_path):
         return []
 
 def parse_yarn_lock(yarn_lock_path):
-    """解析yarn.lock文件并提取依赖信息"""
+    """解析yarn.lock文件并提取依赖信息（优化版本）"""
     try:
-        dependencies = []
+        dependencies = {}  # 使用字典去重，key为包名
+
         with open(yarn_lock_path, 'r', encoding='utf-8') as f:
-            content = f.read()
+            lines = f.readlines()
 
-        # yarn.lock格式: "package@^version":
-        # 匹配所有的包定义行
-        package_pattern = r'^"([^"@]+)@(?:[^"]+)":.*\n\s+version\s+"([^"]+)"'
-        for match in re.finditer(package_pattern, content, re.MULTILINE):
-            pkg_name, version = match.groups()
-            # 确保包名不包含 @scope 前缀的处理
-            dependencies.append(f"{pkg_name} {version}")
+        current_package = None
+        current_version = None
 
-        # 处理 scoped packages (@scope/package)
-        scoped_pattern = r'^"(@[^"@]+/[^"@]+)@(?:[^"]+)":.*\n\s+version\s+"([^"]+)"'
-        for match in re.finditer(scoped_pattern, content, re.MULTILINE):
-            pkg_name, version = match.groups()
-            dependencies.append(f"{pkg_name} {version}")
+        for i, line in enumerate(lines):
+            # 匹配包声明行 (以引号开头)
+            # 格式1: "package@version":
+            # 格式2: "@scope/package@version":
+            # 格式3: "package@version", "package@other-version":  (多个别名)
+            if line.strip().startswith('"') and line.strip().endswith(':'):
+                # 提取包名（去除版本约束）
+                # 使用逗号分割处理多个别名的情况
+                package_declarations = line.strip().rstrip(':').split(',')
 
-        # 去重
-        return list(set(dependencies))
+                for pkg_decl in package_declarations:
+                    pkg_decl = pkg_decl.strip().strip('"')
+
+                    # 分离包名和版本约束
+                    # 对于 scoped packages: @scope/package@^1.0.0
+                    # 对于普通 packages: package@^1.0.0
+                    if pkg_decl.startswith('@'):
+                        # Scoped package
+                        parts = pkg_decl.split('@')
+                        if len(parts) >= 3:  # @scope/package@version
+                            pkg_name = '@' + parts[1]  # @scope/package
+                            current_package = pkg_name
+                    else:
+                        # 普通package
+                        at_pos = pkg_decl.find('@')
+                        if at_pos > 0:
+                            pkg_name = pkg_decl[:at_pos]
+                            current_package = pkg_name
+
+            # 匹配version行 (在包声明后)
+            elif current_package and line.strip().startswith('version '):
+                version_match = re.search(r'version\s+"([^"]+)"', line)
+                if version_match:
+                    current_version = version_match.group(1)
+                    # 保存包和版本
+                    dependencies[current_package] = current_version
+                    current_package = None  # 重置
+                    current_version = None
+
+        # 转换为列表格式
+        result = [f"{pkg} {ver}" for pkg, ver in dependencies.items()]
+        return result
 
     except Exception as e:
         print(f"处理yarn.lock失败 ({yarn_lock_path}): {str(e)}")
+        import traceback
+        traceback.print_exc()
         return []
 
 def parse_pnpm_lock_yaml(pnpm_lock_path):
@@ -201,7 +233,7 @@ def collect_javascript_dependencies(project_path):
 
     if not npm_files:
         print(f"No JavaScript lock files or package.json found in {project_path}")
-        return []
+        return json.dumps([])
 
     unique_dependencies = set()
 

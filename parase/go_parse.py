@@ -84,7 +84,7 @@ def collect_go_dependencies(project_path):
 
     if not go_mod_files:
         print(f"No go.mod files found in {project_path}")
-        return []
+        return json.dumps([])
 
     unique_dependencies = set()
     for go_mod_path in go_mod_files:
