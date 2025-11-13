@@ -68,9 +68,25 @@ def tiny_model_process_data_to_json(trains, tests, pros_path, detect_strategy,la
     ]
 
     real_test = transform_json(new_test)
-    print("real_test" + real_test)
+    # 使用 repr 处理 Unicode 字符，避免编码错误
+    try:
+        import sys
+        if sys.stdout.encoding != 'utf-8':
+            print("real_test: " + str(len(real_test)) + " characters")
+        else:
+            print("real_test" + real_test)
+    except UnicodeEncodeError:
+        print("real_test: " + str(len(real_test)) + " characters")
     top10_real_test = process_and_trim_top_k(real_test)
-    print("top10_real_test" + top10_real_test)
+    # 使用 repr 处理 Unicode 字符，避免编码错误
+    try:
+        import sys
+        if sys.stdout.encoding != 'utf-8':
+            print("top10_real_test: " + str(len(top10_real_test)) + " characters")
+        else:
+            print("top10_real_test" + top10_real_test)
+    except UnicodeEncodeError:
+        print("top10_real_test: " + str(len(top10_real_test)) + " characters")
 
     if language == 'java':
         url = 'https://u375886-8556-689006e7.nmb1.seetacloud.com:8443/vulnerabilities/detect/tinyModel/java'
@@ -132,9 +148,25 @@ def llm_process_data_to_json(trains, tests, pros_path,pros_json_path, detect_str
     ]
 
     real_test = transform_json(new_test)
-    print("real_test" + real_test)
+    # 使用 repr 处理 Unicode 字符，避免编码错误
+    try:
+        import sys
+        if sys.stdout.encoding != 'utf-8':
+            print("real_test: " + str(len(real_test)) + " characters")
+        else:
+            print("real_test" + real_test)
+    except UnicodeEncodeError:
+        print("real_test: " + str(len(real_test)) + " characters")
     top10_real_test = process_and_trim_top_k(real_test)
-    print("top10_real_test" + top10_real_test)
+    # 使用 repr 处理 Unicode 字符，避免编码错误
+    try:
+        import sys
+        if sys.stdout.encoding != 'utf-8':
+            print("top10_real_test: " + str(len(top10_real_test)) + " characters")
+        else:
+            print("top10_real_test" + top10_real_test)
+    except UnicodeEncodeError:
+        print("top10_real_test: " + str(len(top10_real_test)) + " characters")
 
     if language == 'java':
         url = 'https://u375886-8556-689006e7.nmb1.seetacloud.com:8443/vulnerabilities/detect/tinyModel/java'

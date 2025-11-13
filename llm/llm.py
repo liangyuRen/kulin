@@ -25,12 +25,15 @@ class BaseClient:
 
     def _retry(self, func, *args, **kwargs):
         """执行带有重试机制的 API 调用"""
-        wait_times = [2, 4, 8, 16]  # 失败后等待的时间（秒）
+        wait_times = [2, 4, 8]  # 减少重试次数和等待时间
         for attempt, wait_time in enumerate(wait_times, start=1):
             try:
                 return func(*args, **kwargs)  # 调用成功，直接返回结果
             except Exception as e:
-                print(f"第 {attempt} 次尝试失败，错误: {str(e)}，等待 {wait_time} 秒后重试...")
+                if attempt == len(wait_times):
+                    # 最后一次失败，直接抛出异常
+                    raise e
+                print(f"第 {attempt} 次尝试失败，错误: {str(e)[:100]}，等待 {wait_time} 秒后重试...")
                 time.sleep(wait_time)
 
         print("thinking failure...")
@@ -39,7 +42,7 @@ class BaseClient:
 
 class DeepSeekClient(BaseClient):
     def __init__(self, model_name: str):
-        super().__init__(model_name, "ALI_API_KEY", "https://dashscope.aliyuncs.com/compatible-mode/v1")
+        super().__init__(model_name, "DEEPSEEK_API_KEY", "https://api.deepseek.com")
         # Create httpx client without proxy to avoid compatibility issues
         import httpx
         http_client = httpx.Client()
